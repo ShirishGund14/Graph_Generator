@@ -5,11 +5,41 @@ const Graph = () => {
     const adj = [[1, 2, 3], [4, 5, 6], [74, 0, 6, 9], [35, 2]];
     const [edges, setEdges] = useState([]);
     const [viewportSize, setViewportSize] = useState({ width: 0, height: 0 });
+    const [dimentions, SetDimentions] = useState({
+        w: 5,
+        h: 5
+    })
 
-    const generateRandomPosition = (width, height) => {
-        const x = Math.floor(Math.random() * width);
-        const y = Math.floor(Math.random() * height);
-        return { x, y };
+
+    //distance between  centers any 2 nodes  shoulbe greater than its diameter
+    const valid = (x, y, coordinate_map) => {
+
+        for (const node in coordinate_map) {
+            const { x: x1, y: y1 } = coordinate_map[node];
+            const dx = x1 - x;
+            const dy = y1 - y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            if (distance < 15* dimentions.w) return false;
+        }
+        return true;
+    }
+
+    const generateRandomPosition = (width, height, coordinate_map) => {
+
+        let fl=true;
+        let final_x,final_y;
+        while (fl) {
+            const x = Math.floor(Math.random() * width);
+            const y = Math.floor(Math.random() * height);
+            if(valid(x,y,coordinate_map)){
+                final_x=x;
+                final_y=y;
+                fl=false;
+                break;
+            }
+        }
+
+        return{x:final_x,y:final_y}
     };
 
     useEffect(() => {
@@ -36,7 +66,7 @@ const Graph = () => {
 
             for (let i = 0; i < adj.length; i++) {
                 for (let j = 0; j < adj[i].length; j++) {
-                    const { x, y } = generateRandomPosition(viewportSize.width, viewportSize.height);
+                    const { x, y } = generateRandomPosition(viewportSize.width, viewportSize.height, coordinate_map);
                     if (!coordinate_map[adj[i][j]]) {
                         coordinate_map[adj[i][j]] = { x, y };
                     }
@@ -55,11 +85,10 @@ const Graph = () => {
             adj.forEach(row => {
                 const u = row[0];
                 row.slice(1).forEach(v => {
-                    const uCoords = coordinatemap[u];
-                    const vCoords = coordinatemap[v];
-                    if (uCoords && vCoords) {
-                        const { x: x1, y: y1 } = uCoords;
-                        const { x: x2, y: y2 } = vCoords;
+                  
+                    if (coordinatemap[u] && coordinatemap[v]) {
+                        const { x: x1, y: y1 } = coordinatemap[u];
+                        const { x: x2, y: y2 } = coordinatemap[v];
                         positions.push([x1, y1, x2, y2]);
                     }
                 });
@@ -70,7 +99,7 @@ const Graph = () => {
         drawEdges();
     }, [coordinatemap]);
 
-    console.log('map', coordinatemap);
+    //console.log('map', coordinatemap);
 
     return (
         <div className="relative w-full h-screen p-5">
@@ -83,8 +112,10 @@ const Graph = () => {
                                 top: `${coordinatemap[node]?.y}px`,
                                 left: `${coordinatemap[node]?.x}px`,
                                 transform: 'translate(-50%, -50%)', //making center accros the point
+                                height: `${dimentions.h}rem`,
+                                width: `${dimentions.w}rem`
                             }}
-                            className='absolute w-20 h-20 bg-green-500 text-white font-bold rounded-full flex justify-center items-center'>
+                            className='absolute  bg-green-500 text-white font-bold rounded-full flex justify-center items-center'>
                             {node}
                         </div>
                     ))}
