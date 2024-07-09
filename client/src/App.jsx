@@ -12,26 +12,6 @@ function App() {
       <div className=''>
         <Graph />
       </div>
-
-
-      
-
-
-            {/* {adj.map((vec, vecIndex) => (
-                vec.map((node, nodeIndex) => {
-                    const { top, left } = generateRandomPosition();
-                   
-                    return (
-                        <div
-                            key={`${vecIndex}-${nodeIndex}`}
-                            style={{ position: 'absolute', top, left }}
-                            className="w-20 h-20 p-4 bg-green-600 text-gray-200 rounded-full flex justify-center items-center font-bold"
-                        >
-                            {node}
-                        </div>
-                    );
-                })
-            ))} */}
      
     </>
   )
