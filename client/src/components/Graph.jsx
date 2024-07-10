@@ -1,14 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { FaCircleNodes } from "react-icons/fa6";
 
 const Graph = () => {
-    const [coordinatemap, setCoordinatemap] = useState({});
+    const [coordinateMap, setCoordinateMap] = useState({});
     const [edges, setEdges] = useState([]);
     const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
-    const [dimensions, setDimensions] = useState({
-        w: 5,
-        h: 5
-    });
-    const [adj, setAdj] = useState([[1, 2, 3],[74, 0, 6, 9], [35, 2]]);
+    const [dimensions, setDimensions] = useState({ w:5, h:5 });
+    const [adj, setAdj] = useState([[1, 2, 3], [74, 0, 6, 9], [35, 2]]);
     const [inputValue, setInputValue] = useState('[[1, 2, 3],[74, 0, 6, 9], [35, 2]]');
 
     const containerRef = useRef(null);
@@ -23,7 +21,6 @@ const Graph = () => {
             if (!Array.isArray(parsedAdj)) {
                 throw new Error('Input must be a valid 2D array');
             }
-            // Ensure each element in parsedAdj is an array
             for (const arr of parsedAdj) {
                 if (!Array.isArray(arr)) {
                     throw new Error('Each element in the adjacency list must be an array');
@@ -84,7 +81,7 @@ const Graph = () => {
     useEffect(() => {
         if (containerSize.width === 0 || containerSize.height === 0) return;
 
-        const mapAllnodes = () => {
+        const mapAllNodes = () => {
             const coordinate_map = {};
 
             for (let i = 0; i < adj.length; i++) {
@@ -96,10 +93,10 @@ const Graph = () => {
                 }
             }
 
-            setCoordinatemap(coordinate_map);
+            setCoordinateMap(coordinate_map);
         };
 
-        mapAllnodes();
+        mapAllNodes();
     }, [adj, containerSize]);
 
     useEffect(() => {
@@ -108,9 +105,9 @@ const Graph = () => {
             adj.forEach(row => {
                 const u = row[0];
                 row.slice(1).forEach(v => {
-                    if (coordinatemap[u] && coordinatemap[v]) {
-                        const { x: x1, y: y1 } = coordinatemap[u];
-                        const { x: x2, y: y2 } = coordinatemap[v];
+                    if (coordinateMap[u] && coordinateMap[v]) {
+                        const { x: x1, y: y1 } = coordinateMap[u];
+                        const { x: x2, y: y2 } = coordinateMap[v];
                         positions.push([x1, y1, x2, y2]);
                     }
                 });
@@ -119,43 +116,83 @@ const Graph = () => {
         };
 
         drawEdges();
-    }, [coordinatemap, adj]);
+    }, [coordinateMap, adj]);
+
+    const handleDragStart = (e, node) => {
+        e.dataTransfer.setData('node', node);
+    };
+
+    const handleDrag = (e, node) => {
+        const x = e.clientX - containerRef.current.getBoundingClientRect().left;
+        const y = e.clientY - containerRef.current.getBoundingClientRect().top;
+        setCoordinateMap(prev => ({
+            ...prev,
+            [node]: { x, y }
+        }));
+    };
+
+    const handleDragEnd = (e, node) => {
+        const x = e.clientX - containerRef.current.getBoundingClientRect().left;
+        const y = e.clientY - containerRef.current.getBoundingClientRect().top;
+        setCoordinateMap(prev => ({
+            ...prev,
+            [node]: { x, y }
+        }));
+    };
+
+
 
     return (
-        <div className='w-full h-screen flex flex-col gap-3 justify-center items-center bg-gray-900 p-20 -z-10'>
-            <div className='text-4xl font-bold my-2 text-green-500'>Graph Generator</div>
+        <div className='w-full h-screen flex flex-col gap-3 items-center  bg-[#212529] p-4 md:p-12  -z-10'>
+            <div className='text-4xl  md:text-5xl font-bold my-4 text-[#6c757d] flex items-center gap-4 '>Graph Generator <span className='text-[#ff4000]'><FaCircleNodes /></span></div>
 
-            <div className='flex gap-4 w-full items-center justify-between'>
-                <textarea
-                    type='text'
-                    className='border-2 p-3 rounded-md w-3/4 bg-transparent text-green-400'
-                    placeholder='Enter Adjacency List like: [[1, 2, 3], [4, 5, 6], [74, 0, 6, 9], [35, 2]]'
-                    value={inputValue}
-                    onChange={handleInputChange}
-                >
-                </textarea>
-                <button
-                    className='p-3 bg-green-500 text-gray-100 font-medium'
-                    onClick={parseAdjacencyList}
-                >
-                    Generate Graph
-                </button>
+            <div className='flex  flex-col gap-4 w-full p-2 md:p-4 justify-between mb-5 bg-[#6c757d]'>
+
+                <div className='text-black text-sm md:text-xl p-3 bg-slate-400'>
+                    Enter adjacency in the form of comma(,) seperated 2d array  [[u1,v1,v2,v],[u2,v5],[u3]] where v<sub>i</sub> is the neighbouring node of
+                    u<sub>i</sub> node <br></br>
+                    <div className='flex md:gap-4 items-center overflow-y-auto'>
+                        <div className='w-6 h-6 bg-[#efd6ac] mr-1'></div> shows unidirectional-edges
+                        <div className='w-6 h-6 bg-blue-500 mr-1'></div> shows Bidirectional-edges
+                    </div>
+                </div>
+
+                <div className='w-full flex items-center gap-5'>
+                    <textarea
+                        type='text'
+                        className='border-2 p-3 rounded-md w-3/4 bg-gray-900 text-[#ff4000] border-none'
+                        placeholder='Enter Adjacency List like: [[1, 2, 3], [4, 5, 6], [74, 0, 6, 9], [35, 2]]'
+                        value={inputValue}
+                        onChange={handleInputChange}
+                    />
+                    <button
+                        className='p-3 bg-[#ff6700] text-gray-100 font-medium  rounded-lg hover:shadow-xl '
+                        onClick={parseAdjacencyList}
+                    >
+                        Generate Graph
+                    </button>
+                </div>
             </div>
 
-            <div ref={containerRef} className="relative w-full h-3/4 m-5 ">
+            <div ref={containerRef} className="relative w-full h-3/4 md:m-5">
                 {adj.map((vec, i) => (
                     <div key={i}>
                         {vec.map((node, j) => (
                             <div
                                 key={node}
+                                draggable
+                                onDragStart={(e) => handleDragStart(e, node)}
+                                onDrag={(e) => handleDrag(e, node)}
+                                onDragEnd={(e) => handleDragEnd(e, node)}
                                 style={{
-                                    top: `${coordinatemap[node]?.y}px`,
-                                    left: `${coordinatemap[node]?.x}px`,
+                                    top: `${coordinateMap[node]?.y}px`,
+                                    left: `${coordinateMap[node]?.x}px`,
                                     transform: 'translate(-50%, -50%)',
                                     height: `${dimensions.h}rem`,
-                                    width: `${dimensions.w}rem`
+                                    width: `${dimensions.w}rem`,
+                                    position: 'absolute'
                                 }}
-                                className='absolute z-10 bg-green-500 text-white font-bold rounded-full flex justify-center items-center'
+                                className='z-10 bg-[#6c757d] text-xl text-[#f7f7f7] font-bold rounded-full flex justify-center items-center border-4 border-[#ff4000] hover:cursor-pointer'
                             >
                                 {node}
                             </div>
@@ -170,6 +207,11 @@ const Graph = () => {
                     const distance = Math.sqrt(dx * dx + dy * dy);
                     const angle = Math.atan2(dy, dx) * (180 / Math.PI);
 
+                    const isBidirectional = edges.some(
+                        ([x2Edge, y2Edge, x1Edge, y1Edge]) =>
+                            x1 === x1Edge && y1 === y1Edge && x2 === x2Edge && y2 === y2Edge
+                    );
+
                     return (
                         <div
                             key={i}
@@ -180,16 +222,17 @@ const Graph = () => {
                                 transform: `rotate(${angle}deg)`,
                                 left: `${x1}px`,
                                 top: `${y1}px`,
-                                //zIndex: '-5',
-                                backgroundColor: 'orange',
-                                transformOrigin: '0% 0%'
+                                backgroundColor: isBidirectional ? 'blue' : '#efd6ac',
+                                transformOrigin: '0% 0%',
+
                             }}
-                        ></div>
+                            className='m-4'
+                        />
                     );
                 })}
             </div>
         </div>
     );
-}
+};
 
 export default Graph;
